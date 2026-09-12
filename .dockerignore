@@ -1,0 +1,37 @@
+**/.git
+**/.github
+**/.vs
+**/.vscode
+**/.idea
+**/bin
+**/obj
+**/TestResults
+**/*.user
+**/*.suo
+**/.DS_Store
+**/.env
+**/.env.*
+
+# Local runtime data must never become part of an image or a build cache.
+**/gamecommon.json
+**/db.json
+**/*.db
+**/*.db-*
+**/*.sqlite*
+**/cache
+**/logs
+**/Server_Update
+**/*.log
+**/*.zip
+**/*.pfx
+!EpinelPS/site.pfx
+/data
+/backup
+/backups
+/out
+/outputs
+/work
+
+# The Linux image contains only the server.
+/ServerSelector
+/ServerSelector.Desktop

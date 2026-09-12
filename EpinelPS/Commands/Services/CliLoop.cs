@@ -17,7 +17,8 @@ public static class CliLoop
             Console.Write(prompt);
 
             string? input = Console.ReadLine();
-            if (input == null || input == string.Empty) continue;
+            if (input == null) return;
+            if (input == string.Empty) continue;
 
             var result = manager.ExecuteCommandAsync(input).GetAwaiter().GetResult();
             if (result.Color.HasValue) Console.ForegroundColor = result.Color.Value;

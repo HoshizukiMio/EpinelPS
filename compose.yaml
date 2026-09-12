@@ -1,0 +1,21 @@
+services:
+  epinelps:
+    image: ${EPINELPS_IMAGE:-epinelps:latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${EPINELPS_BIND_ADDRESS:-127.0.0.1}:${EPINELPS_HTTP_PORT:-80}:8080"
+      - "${EPINELPS_BIND_ADDRESS:-127.0.0.1}:${EPINELPS_HTTPS_PORT:-443}:8443"
+    volumes:
+      - epinelps-data:/data
+      - type: bind
+        source: ${GAMECOMMON_PATH:-./gamecommon.json}
+        target: /app/gamecommon.json
+        read_only: true
+        bind:
+          create_host_path: false
+
+volumes:
+  epinelps-data:

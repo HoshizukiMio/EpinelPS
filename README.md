@@ -33,5 +33,10 @@ For more information, please join our [Discord Server](https://discord.gg/Ztt6Y9
 > [!Note]
 > Before updating the game, make sure to switch back to the official server to ensure that the game is properly patched.
 
+## Docker
+
+See [Docker 构建与运行指南](docs/docker.md) for local builds, mounting your own
+`gamecommon.json`, persistent data, and GitHub Actions / GHCR images.
+
 ## What is implemented or missing?
 See the todo list at https://github.com/orgs/EpinelPS/projects/1 and https://github.com/EpinelPS/EpinelPS/issues

@@ -21,6 +21,9 @@ internal class Program
 {
     static async Task Main(string[] args)
     {
+        bool headless = args.Contains("--headless") || Console.IsInputRedirected;
+        bool isContainer = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+
         try
         {
             XmlConfigurator.Configure(new FileInfo("log4net.config"));
@@ -31,10 +34,11 @@ internal class Program
             if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "gamecommon.json")))
             {
                 Console.WriteLine("gamecommon.json does not exist, please go to our discord server for assistance");
+                Environment.ExitCode = 1;
                 return;
             }
             
-            if (args.Length == 0 || args[0] != "--headless")
+            if (!headless)
                 await GitUpdateCheck.CheckForUpdates();
 
             await GameData.CreateAsync();
@@ -45,8 +49,10 @@ internal class Program
             Logging.WriteLine("Register handlers");
             LobbyHandler.Init();
 
-            Logging.WriteLine("Starting ASP.NET core on ports 80 and 443");
-            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+            WebApplicationBuilder builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--headless").ToArray());
+            int httpPort = builder.Configuration.GetValue("EpinelPS:HttpPort", 80);
+            int httpsPort = builder.Configuration.GetValue("EpinelPS:HttpsPort", 443);
+            Logging.WriteLine($"Starting ASP.NET core on ports {httpPort} and {httpsPort}");
 
             // Configure HTTPS
             HttpsConnectionAdapterOptions httpsConnectionAdapterOptions = new()
@@ -58,13 +64,13 @@ internal class Program
 
             builder.WebHost.ConfigureKestrel(serverOptions =>
             {
-                serverOptions.Listen(IPAddress.Any, 443,
+                serverOptions.Listen(IPAddress.Any, httpsPort,
                     listenOptions =>
                     {
                         listenOptions.Protocols = HttpProtocols.Http1AndHttp2AndHttp3;
                         listenOptions.UseHttps(AppDomain.CurrentDomain.BaseDirectory + @"site.pfx", "");
                     });
-                serverOptions.Listen(IPAddress.Loopback, 80,
+                serverOptions.Listen(isContainer ? IPAddress.Any : IPAddress.Loopback, httpPort,
                listenOptions =>
                {
                    listenOptions.Protocols = HttpProtocols.Http1;
@@ -216,15 +222,20 @@ internal class Program
                 return $"EpinelPS v{Assembly.GetExecutingAssembly().GetName().Version} - https://github.com/EpinelPS/EpinelPS/";
             });
 
-            new Thread(Commands.Services.CliLoop.Start).Start();
+            if (!headless)
+                new Thread(Commands.Services.CliLoop.Start) { IsBackground = true }.Start();
             app.Run();
         }
         catch (Exception ex) when (ex is not HostAbortedException && ex.Source != "Microsoft.EntityFrameworkCore.Design") // see https://github.com/dotnet/efcore/issues/29923
         {
             Console.WriteLine("Fatal error:");
             Console.WriteLine(ex.ToString());
-            Console.WriteLine("Press any key to exit");
-            Console.ReadKey();
+            Environment.ExitCode = 1;
+            if (!headless)
+            {
+                Console.WriteLine("Press any key to exit");
+                Console.ReadKey();
+            }
         }
     }
 

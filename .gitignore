@@ -459,3 +459,11 @@ $RECYCLE.BIN/
 !ServerSelector/sodium.dll
 
 EpinelPS/Protos/allmsgs.proto
+
+# Docker runtime files supplied by the operator
+/gamecommon.json
+/EpinelPS/gamecommon.json
+/.env
+/data/
+/backup/
+/backups/
